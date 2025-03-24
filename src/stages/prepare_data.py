@@ -20,6 +20,18 @@ def get_column_types(df):
     return categorical_columns, numeric_columns
 
 
+def featurize(df, cfg):
+    df['Distance_by_year'] = df['Distance'] / (2022 - df['Year'])
+    df['age'] = 2024 - df['Year']
+    mean_engine_cap = df.groupby('Style')['Engine_capacity(cm3)'].mean()
+    df['eng_cap_diff'] = df.apply(lambda row: abs(row['Engine_capacity(cm3)'] - mean_engine_cap[row['Style']]), axis=1)
+
+    max_engine_cap = df.groupby('Style')['Engine_capacity(cm3)'].max()
+    df['eng_cap_diff_max'] = df.apply(lambda row: abs(row['Engine_capacity(cm3)'] - max_engine_cap[row['Style']]), axis=1)
+
+    df.to_csv(cfg['prepare_data']['save_path'], index=False)
+
+
 def transform_data(data_path, save=False, save_path=''):
     df = pd.read_csv(data_path)
     categorical_columns, _ = get_column_types(df)
@@ -39,4 +51,5 @@ def transform_data(data_path, save=False, save_path=''):
 
 if __name__ == "__main__":
     config = load_config("../config.yaml")
-    transform_data(config['data_load']['path'], save=True, save_path=config['data_load']['save_path'])
+    df = transform_data(config['data_load']['path'])
+    featurize(df, config)
