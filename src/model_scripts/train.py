@@ -21,17 +21,16 @@ def eval_metrics(actual, prediction):
     return rmse, mae, r2
 
 
-def train(config):
-    train = pd.read_csv(config['data_split']['train_path'])
-    test = pd.read_csv(config['data_split']['test_path'])
-    X_train, y_train = train.drop(columns=['price']).values, train['price'].values
-    X_test, y_test = test.drop(columns=['price']).values, test['price'].values
-    pow_tr = PowerTransformer()
-    y_train = pow_tr.fit_transform(y_train.reshape(-1, 1))
-    y_test = pow_tr.fit_transform(y_test.reshape(-1, 1))
+def train(cfg):
+    train = pd.read_csv(cfg['split_data']['train_path'])
+    test = pd.read_csv(cfg['split_data']['test_path'])
+    X_train, y_train = (train.drop(columns=[cfg['base']['target']]).values,
+                        train[cfg['base']['target']].values)
+    X_test, y_test = (test.drop(columns=[cfg['base']['target']]).values,
+                      test[cfg['base']['target']].values)
 
     lasso_pipeline_parameters = {
-        'LASSO__max_iter': [1000, 2000, 5000, 7000, 10000],
+        'LASSO__max_iter': [1000, 2000, 5000, 7000, 10000, 100000],
         'LASSO__alpha': [1e-6, 1e-5, 1e-4, 1e-2, 1],
         'LASSO__random_state': [42]
     }
@@ -45,14 +44,13 @@ def train(config):
 
         clf = GridSearchCV(lasso_pipeline,
                            lasso_pipeline_parameters,
-                           cv=config['train']['cv'],
-                           n_jobs=config['train']['n_jobs'])
+                           cv=cfg['train']['cv'],
+                           n_jobs=cfg['train']['n_jobs'])
 
         clf.fit(X_train, y_train.reshape(-1))
         best = clf.best_estimator_['LASSO']
         y_prediction = best.predict(X_test)
-        y_price_prediction = pow_tr.inverse_transform(y_prediction.reshape(-1, 1))
-        rmse, mae, r2 = eval_metrics(pow_tr.inverse_transform(y_test), y_price_prediction)
+        rmse, mae, r2 = eval_metrics(y_test, y_prediction)
 
         final_parameters = best.get_params()
         for parameter in final_parameters:
@@ -66,8 +64,5 @@ def train(config):
         signature = infer_signature(X_train, predictions)
         mlflow.sklearn.log_model(best, "model", signature=signature)
 
-        with open(config['train']['model_path'], "wb") as file:
+        with open(cfg['train']['model_path'], "wb") as file:
             pickle.dump(best, file)
-
-        with open(config['train']['power_path'], "wb") as file:
-            pickle.dump(pow_tr, file)

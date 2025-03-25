@@ -1,0 +1,40 @@
+stages:
+  prepare_data:
+    cmd:
+    - python src/stages/prepare_data.py
+    deps:
+    - src/config.yaml
+    - src/stages/prepare_data.py
+    outs:
+    - data/cars_transformed.csv
+  split_data:
+    cmd: python src/stages/split_data.py
+    deps:
+    - src/config.yaml
+    - src/stages/split_data.py
+    - data/cars_transformed.csv
+    outs:
+    - data/test.csv
+    - data/train.csv
+  train:
+    cmd: python src/stages/train.py
+    deps:
+    - data/test.csv
+    - data/train.csv
+    - src/config.yaml
+    - src/stages/train.py
+    outs:
+    - models/model.joblib
+  test_model:
+    cmd: python src/stages/test_model.py
+    deps:
+    - models/model.joblib
+    - src/config.yaml
+    - src/stages/test_model.py
+    outs:
+    - dvclive
+metrics:
+- dvclive/metrics.json
+plots:
+- dvclive/plots/metrics:
+    x: step

@@ -1,3 +1,8 @@
+import sys
+import os
+sys.path.append(os.getcwd())
+
+
 from src.load_cfg import load_config
 from src.model_scripts.train import train
 

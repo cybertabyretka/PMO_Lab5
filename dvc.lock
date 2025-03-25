@@ -1,0 +1,88 @@
+schema: '2.0'
+stages:
+  prepare_data:
+    cmd:
+    - python src/stages/prepare_data.py
+    deps:
+    - path: src/config.yaml
+      hash: md5
+      md5: 78325ef71b6587bfbfb934cb1a9a3ac2
+      size: 472
+    - path: src/stages/prepare_data.py
+      hash: md5
+      md5: 9a742ffa6a9cbb9fb3b0d04b1ed70f78
+      size: 2570
+    outs:
+    - path: data/cars_transformed.csv
+      hash: md5
+      md5: 2f61e314a3c450f3dfa7dcfd903a8678
+      size: 11138065
+  split_data:
+    cmd: python src/stages/split_data.py
+    deps:
+    - path: data/cars_transformed.csv
+      hash: md5
+      md5: 2f61e314a3c450f3dfa7dcfd903a8678
+      size: 11138065
+    - path: src/config.yaml
+      hash: md5
+      md5: 78325ef71b6587bfbfb934cb1a9a3ac2
+      size: 472
+    - path: src/stages/split_data.py
+      hash: md5
+      md5: 087317bfc239aae27f2b3c5d29299fd0
+      size: 585
+    outs:
+    - path: data/test.csv
+      hash: md5
+      md5: ff70fbe236c8beb582ee2bfd8cb90918
+      size: 2225979
+    - path: data/train.csv
+      hash: md5
+      md5: 665b55b656f321ebf13d289895789241
+      size: 8905479
+  train:
+    cmd: python src/stages/train.py
+    deps:
+    - path: data/test.csv
+      hash: md5
+      md5: ff70fbe236c8beb582ee2bfd8cb90918
+      size: 2225979
+    - path: data/train.csv
+      hash: md5
+      md5: 665b55b656f321ebf13d289895789241
+      size: 8905479
+    - path: src/config.yaml
+      hash: md5
+      md5: 78325ef71b6587bfbfb934cb1a9a3ac2
+      size: 472
+    - path: src/stages/train.py
+      hash: md5
+      md5: fb39cc4c29c411409f52b5bbed9e1e8e
+      size: 234
+    outs:
+    - path: models/model.joblib
+      hash: md5
+      md5: c501c0d0b8d5442ac49926cd0cf8a784
+      size: 600
+  test_model:
+    cmd: python src/stages/test_model.py
+    deps:
+    - path: models/model.joblib
+      hash: md5
+      md5: c501c0d0b8d5442ac49926cd0cf8a784
+      size: 600
+    - path: src/config.yaml
+      hash: md5
+      md5: 78325ef71b6587bfbfb934cb1a9a3ac2
+      size: 472
+    - path: src/stages/test_model.py
+      hash: md5
+      md5: c583b61a1ed9bf0701628a1d6e3540aa
+      size: 997
+    outs:
+    - path: dvclive
+      hash: md5
+      md5: 015ab5ad1b4cb278a7f4d622bc122bfe.dir
+      size: 67
+      nfiles: 2
